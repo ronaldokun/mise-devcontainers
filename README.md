@@ -21,6 +21,8 @@ Check the agent with:
 ssh-add -L
 ```
 
+If the ssh key has a password, decrypt first with "eval `ssh-agent -s`"
+
 The agent is forwarded for Git authentication and commit signing. Private keys never enter the container.
 
 If `MISE_GITHUB_TOKEN` is set on the host, it is forwarded into the container for mise's GitHub-backed operations.

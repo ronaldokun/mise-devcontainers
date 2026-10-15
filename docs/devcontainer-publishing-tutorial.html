@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A practical guide to extending, building, testing, and publishing images and Dev Container templates from mise-devcontainers.">
+  <title>Build & publish | mise-devcontainers</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: #111a2d;
+      --panel-2: #172239;
+      --line: #263551;
+      --text: #edf3ff;
+      --muted: #a6b3c9;
+      --soft: #71829f;
+      --accent: #80f0c0;
+      --blue: #87b9ff;
+      --amber: #ffd17d;
+      --red: #ff9b9b;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      scroll-behavior: smooth;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 82% 0%, rgb(40 91 115 / 22%), transparent 34rem),
+        radial-gradient(ellipse at 0% 28%, rgb(44 56 109 / 20%), transparent 36rem), var(--bg);
+      line-height: 1.65;
+    }
+    a { color: var(--accent); text-decoration-thickness: .08em; text-underline-offset: .2em; }
+    a:hover { color: #b1ffdd; }
+    code, pre { font-family: var(--mono); }
+    code { color: #d5e7ff; font-size: .92em; }
+    .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); max-width: 1480px; margin: auto; }
+    aside {
+      position: sticky; top: 0; height: 100dvh; overflow: auto;
+      padding: 32px 20px 28px 28px; border-right: 1px solid var(--line);
+      background: rgb(11 16 32 / 78%); backdrop-filter: blur(16px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; color: var(--text); text-decoration: none; }
+    .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid #426b69; border-radius: 12px; color: var(--accent); background: #14282c; font-weight: 800; }
+    .brand strong { display: block; font-size: .96rem; letter-spacing: -.02em; }
+    .brand small { display: block; color: var(--muted); font-size: .75rem; }
+    .nav-label { margin: 22px 0 8px; color: var(--soft); font-size: .68rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+    nav a { display: block; padding: 6px 10px; border-left: 2px solid transparent; border-radius: 0 7px 7px 0; color: var(--muted); font-size: .85rem; text-decoration: none; }
+    nav a:hover, nav a:focus-visible { color: var(--text); background: var(--panel); }
+    .side-note { margin-top: 28px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-size: .78rem; }
+    main { width: min(100%, 1020px); padding: 54px clamp(22px, 5vw, 76px) 100px; }
+    .eyebrow { color: var(--accent); font-size: .75rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { max-width: 780px; margin: 12px 0 18px; font-size: clamp(2.5rem, 6vw, 4.8rem); letter-spacing: -.065em; line-height: 1.03; }
+    h1 span { color: var(--accent); }
+    .lede { max-width: 760px; color: #c0cce0; font-size: clamp(1.03rem, 2vw, 1.22rem); }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 32px; }
+    .pill { padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: .76rem; }
+    .hero-flow, .grid, .steps { display: grid; gap: 12px; }
+    .hero-flow { grid-template-columns: repeat(4, 1fr); margin: 30px 0 54px; }
+    .flow-card { position: relative; min-height: 105px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(145deg, var(--panel), #101629); }
+    .flow-card b { display: block; margin: 8px 0 3px; }
+    .flow-card small { color: var(--muted); }
+    .flow-num { color: var(--accent); font-family: var(--mono); font-size: .72rem; }
+    section { margin: 58px 0; scroll-margin-top: 28px; }
+    h2 { margin: 0 0 18px; font-size: clamp(1.7rem, 4vw, 2.35rem); letter-spacing: -.045em; line-height: 1.15; }
+    h3 { margin: 26px 0 8px; font-size: 1.2rem; letter-spacing: -.02em; }
+    h4 { margin: 0 0 8px; font-size: .96rem; }
+    p { color: #c1cce0; }
+    .section-intro { max-width: 760px; margin-top: -8px; color: var(--muted); }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 20px 0; }
+    .card { padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: rgb(17 26 45 / 82%); }
+    .card p { margin: 8px 0 0; font-size: .91rem; }
+    .card .tag { display: inline-block; margin-bottom: 10px; color: var(--blue); font-family: var(--mono); font-size: .73rem; }
+    .callout { margin: 20px 0; padding: 15px 17px; border: 1px solid #37524d; border-left: 3px solid var(--accent); border-radius: 10px; background: #112323; color: #d0e8df; }
+    .callout.warning { border-color: #665333; border-left-color: var(--amber); background: #252014; color: #f1dfb8; }
+    .callout.danger { border-color: #613b48; border-left-color: var(--red); background: #281820; color: #f4cbd1; }
+    .callout p { margin: 4px 0 0; color: inherit; }
+    .tree { padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: #0e1526; overflow-x: auto; color: #c7d6ed; font-size: .82rem; line-height: 1.7; }
+    .tree .common { color: var(--accent); }
+    .table-wrap { overflow-x: auto; margin: 18px 0; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 580px; background: rgb(17 26 45 / 70%); }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--blue); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
+    td { color: #c3cee0; font-size: .87rem; }
+    tr:last-child td { border-bottom: 0; }
+    .codebox { position: relative; margin: 14px 0 20px; border: 1px solid #273650; border-radius: 12px; background: #080d18; overflow: hidden; }
+    .code-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #202c40; color: var(--soft); font-size: .72rem; }
+    .copy { padding: 4px 9px; border: 1px solid #35445d; border-radius: 6px; color: #cad6e8; background: #121b2a; font: inherit; cursor: pointer; }
+    .copy:hover { border-color: var(--accent); color: var(--accent); }
+    pre { margin: 0; padding: 16px; overflow-x: auto; color: #d7e3f6; font-size: .81rem; line-height: 1.65; tab-size: 2; }
+    .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px 0; }
+    .step { padding: 16px; border-top: 2px solid #385c5b; background: linear-gradient(180deg, #122126, transparent); }
+    .step small { color: var(--accent); font-family: var(--mono); }
+    .step p { margin-bottom: 0; font-size: .87rem; }
+    .checklist { padding: 0; list-style: none; }
+    .checklist li { position: relative; margin: 9px 0; padding-left: 27px; color: #c1cce0; }
+    .checklist li::before { position: absolute; left: 0; content: "✓"; color: var(--accent); font-weight: 800; }
+    .mini { color: var(--muted); font-size: .83rem; }
+    .path { color: var(--blue); font-family: var(--mono); font-size: .86em; }
+    .divider { height: 1px; margin: 52px 0; background: linear-gradient(90deg, transparent, var(--line), transparent); }
+    footer { padding-top: 24px; border-top: 1px solid var(--line); color: var(--soft); font-size: .8rem; }
+    .toplink { float: right; }
+    @media (max-width: 900px) {
+      .layout { display: block; }
+      aside { position: relative; z-index: 3; display: flex; align-items: center; gap: 20px; width: 100%; height: auto; padding: 12px 20px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .brand { flex: 0 0 auto; margin: 0; }
+      nav { display: flex; gap: 4px; overflow-x: auto; }
+      nav a { flex: 0 0 auto; border-left: 0; border-bottom: 2px solid transparent; }
+      .nav-label, .side-note { display: none; }
+      main { margin: auto; padding-top: 42px; }
+    }
+    @media (max-width: 620px) {
+      aside { align-items: flex-start; flex-direction: column; gap: 8px; }
+      nav { width: 100%; }
+      .hero-flow { grid-template-columns: repeat(2, 1fr); }
+      .grid, .steps { grid-template-columns: 1fr; }
+      main { padding: 32px 18px 72px; }
+      .flow-card { min-height: 90px; }
+    }
+    @media print {
+      :root { color-scheme: light; --bg: #fff; --text: #111; --panel: #f5f6f8; --line: #ccd2dc; --muted: #444; }
+      body { background: #fff; color: #111; }
+      aside, .copy { display: none; }
+      .layout { display: block; }
+      main { width: 100%; padding: 0; }
+      p, td, .mini, .checklist li { color: #222; }
+      .card, .codebox, .tree, table { break-inside: avoid; }
+      pre { white-space: pre-wrap; color: #111; }
+      a { color: #075f46; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout" id="top">
+    <aside aria-label="Tutorial navigation">
+      <a class="brand" href="#top" aria-label="Back to top">
+        <span class="brand-mark">m</span>
+        <span><strong>mise-devcontainers</strong><small>Build &amp; publish guide</small></span>
+      </a>
+      <nav>
+        <div class="nav-label">On this page</div>
+        <a href="#mental-model">Mental model</a>
+        <a href="#repository-map">Repository map</a>
+        <a href="#extend">Choose an extension</a>
+        <a href="#image-workflow">Image workflow</a>
+        <a href="#template-workflow">Template workflow</a>
+        <a href="#test-local">Build and test locally</a>
+        <a href="#release">Publish with Actions</a>
+        <a href="#your-namespace">Publish your own</a>
+        <a href="#add-distro">Add a distro</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+      </nav>
+      <div class="side-note">Repo-specific guide. Names, paths, image tags, and release behavior below match this repository's current scripts.</div>
+    </aside>
+
+    <main>
+      <header>
+        <div class="eyebrow">A practical maintainer's guide</div>
+        <h1>Build images.<br><span>Ship templates.</span></h1>
+        <p class="lede">Learn how this repository turns distro-specific Dockerfiles and shared configuration into tested container images and published Dev Container Templates. Then use the same pipeline for a small extension or your own GHCR namespace.</p>
+        <div class="hero-meta">
+          <span class="pill">Images: Docker Buildx + GHCR</span>
+          <span class="pill">Templates: OCI artifacts</span>
+          <span class="pill">Automation: GitHub Actions</span>
+          <span class="pill">No third-party CSS or JS</span>
+        </div>
+      </header>
+
+      <div class="hero-flow" aria-label="Build and publish sequence">
+        <div class="flow-card"><span class="flow-num">01 / SOURCE</span><b>Compose</b><small>Common layer + distro overlay</small></div>
+        <div class="flow-card"><span class="flow-num">02 / BUILD</span><b>Build image</b><small>Push a temporary candidate tag</small></div>
+        <div class="flow-card"><span class="flow-num">03 / VALIDATE</span><b>Test template</b><small>Start container and run checks</small></div>
+        <div class="flow-card"><span class="flow-num">04 / RELEASE</span><b>Promote + publish</b><small>Stable image tags + OCI template</small></div>
+      </div>
+
+      <section id="mental-model">
+        <div class="eyebrow">01 / Mental model</div>
+        <h2>Two artifacts, one release path</h2>
+        <p class="section-intro">The image contains the operating system and shared development environment. The template is a small project-facing package that tells Dev Container tools how to use that image.</p>
+        <div class="grid">
+          <article class="card"><span class="tag">CONTAINER IMAGE</span><h3>Runtime environment</h3><p>Built from <code>distros/</code>. It installs system packages, mise, shell setup, users, Docker-in-Docker helpers, and common tools. Images live at <code>ghcr.io/&lt;owner&gt;/mise-devcontainer-&lt;distro&gt;</code>.</p></article>
+          <article class="card"><span class="tag">DEV CONTAINER TEMPLATE</span><h3>Project configuration</h3><p>Built from <code>templates/</code>. It supplies <code>.devcontainer/devcontainer.json</code> and helper scripts. Templates publish to a collection such as <code>ghcr.io/&lt;owner&gt;/mise-devcontainers/&lt;distro&gt;</code>.</p></article>
+        </div>
+        <div class="callout"><strong>Keep project runtimes in the project.</strong><p>The shared image installs baseline tools. Project-specific language versions belong in the project's <code>mise.toml</code>, not in this image.</p></div>
+        <div class="steps">
+          <div class="step"><small>PR OPENED / UPDATED</small><p>Change detection picks affected distros. CI builds candidate images, assembles templates, and starts each template for tests.</p></div>
+          <div class="step"><small>PR MERGED</small><p>Release restores validation metadata for the exact merged commit, promotes tested images, then publishes tested templates.</p></div>
+          <div class="step"><small>CONSUMER</small><p>A developer applies the template. Its config references the released image by immutable digest.</p></div>
+        </div>
+      </section>
+
+      <section id="repository-map">
+        <div class="eyebrow">02 / Repository map</div>
+        <h2>Find the right layer first</h2>
+        <p class="section-intro">Shared files are overlaid with distro files during builds. A shared edit affects every distro; a distro-local edit should affect only that distro.</p>
+        <div class="tree"><span class="common">distros/_common/</span>             # Shared image files and build steps
+├── Dockerfile                 # Common Dockerfile tail
+├── scripts/00-config.sh       # Shared build phases: 00, 03, 04, 05
+├── scripts/03-user.sh
+├── scripts/04-mise.sh
+├── scripts/05-antidote.sh
+├── .config/mise/config.toml   # Baseline mise tools
+└── binscripts/                # Runtime helpers copied into the image
+
+<span class="common">distros/&lt;distro&gt;/</span>              # Base image + distro package setup
+├── Dockerfile                 # FROM line; concatenated before common Dockerfile
+└── scripts/01-base.sh         # OS setup and packages, in build order
+
+<span class="common">templates/_common/</span>            # Shared template config and CLI helpers
+<span class="common">templates/&lt;distro&gt;/</span>             # Distro template metadata
+
+test/_common/                  # Shared in-container test helpers
+test/&lt;distro&gt;/test.sh          # Per-distro test entry point
+scripts/                       # Build, detect, validate, promote, publish
+.github/workflows/             # PR validation and merge release</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Want to change…</th><th>Start here</th><th>Change detection</th></tr></thead>
+          <tbody>
+            <tr><td>Common tool available in every image</td><td><code>distros/_common/.config/mise/config.toml</code></td><td>All distros</td></tr>
+            <tr><td>OS package for one distro</td><td><code>distros/&lt;distro&gt;/scripts/02-packages.sh</code></td><td>That distro</td></tr>
+            <tr><td>Shared image startup or user setup</td><td><code>distros/_common/scripts/</code> or <code>binscripts/</code></td><td>All distros</td></tr>
+            <tr><td>Workspace mounts, lifecycle, or CLI helper</td><td><code>templates/_common/</code></td><td>All distros</td></tr>
+            <tr><td>Template metadata or distro-specific template config</td><td><code>templates/&lt;distro&gt;/</code></td><td>That distro</td></tr>
+            <tr><td>Behavior the container must guarantee</td><td><code>test/&lt;distro&gt;/test.sh</code></td><td>That distro</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="extend">
+        <div class="eyebrow">03 / Choose an extension</div>
+        <h2>Small change? Keep it local</h2>
+        <div class="grid">
+          <article class="card"><h3>Add a shared CLI tool</h3><p>Add it to <code>distros/_common/.config/mise/config.toml</code> if mise manages it. This changes every image. Put OS-level dependencies in distro package scripts instead.</p></article>
+          <article class="card"><h3>Add one distro package</h3><p>Edit that distro's <code>scripts/02-packages.sh</code>. Follow its native package manager: for example, <code>apt-get</code> on Ubuntu/Debian or <code>apk</code> on Alpine.</p></article>
+          <article class="card"><h3>Change project behavior</h3><p>Edit <code>templates/_common/.devcontainer/devcontainer.json</code> or its helper scripts. Check mounts, lifecycle commands, and SSH agent forwarding before changing defaults.</p></article>
+          <article class="card"><h3>Change one published template</h3><p>Edit <code>templates/&lt;distro&gt;/devcontainer-template.json</code>. Keep its <code>id</code> aligned with the directory name; the publisher validates this.</p></article>
+        </div>
+        <div class="callout warning"><strong>Shared changes rebuild all distro images.</strong><p><code>scripts/detect-changes.sh</code> treats changes under <code>distros/_common/</code>, <code>templates/_common/</code>, or changes to <code>.rebuild-all</code> as a full rebuild. A distro-local change selects only that distro.</p></div>
+      </section>
+
+      <section id="image-workflow">
+        <div class="eyebrow">04 / Image workflow</div>
+        <h2>How a container image gets assembled</h2>
+        <ol>
+          <li><strong>Discover distros.</strong> <code>scripts/lib.sh</code> scans direct subdirectories of <code>distros/</code>, excluding <code>_common</code>.</li>
+          <li><strong>Overlay files.</strong> <code>prepare_overlay</code> copies common files first, then distro files over them into <code>.tmp/.build-image-&lt;distro&gt;/</code>. A distro file with the same relative path overrides the common file.</li>
+          <li><strong>Join Dockerfiles.</strong> <code>build-image.sh</code> writes the distro Dockerfile first, then appends <code>distros/_common/Dockerfile</code>. The distro file supplies the base <code>FROM</code>; shared instructions add the environment.</li>
+          <li><strong>Build and push.</strong> Docker Buildx pushes the image under a temporary <code>ci-&lt;run-id&gt;-&lt;attempt&gt;</code> tag. Registry cache is stored under <code>:buildcache</code>.</li>
+          <li><strong>Promote after merge.</strong> <code>promote-image.sh</code> points the release version, <code>:latest</code>, and <code>:current</code> at the exact candidate image.</li>
+        </ol>
+        <h3>Shared build order</h3>
+        <p>Common Dockerfile copies and runs the staged scripts in order: <code>00-config.sh</code>, <code>01-base.sh</code>, <code>02-packages.sh</code>, <code>03-user.sh</code>, <code>04-mise.sh</code>, and <code>05-antidote.sh</code>. The first two scripts are distro-provided; common setup supplies later phases. Distro overlays can replace common paths.</p>
+        <div class="callout"><strong>Build secrets stay build-time secrets.</strong><p><code>MISE_GITHUB_TOKEN</code> enters the image build as a BuildKit secret for mise installs. It is not a Dockerfile <code>ARG</code> or baked image environment value. The template separately forwards an optional host token at runtime.</p></div>
+        <h3>Image tags</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tag</th><th>Meaning</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td><code>ci-&lt;run&gt;-&lt;attempt&gt;</code></td><td>Candidate image built and tested by PR validation</td><td>CI handoff only</td></tr>
+            <tr><td><code>&lt;UTC release timestamp&gt;</code></td><td>Version tag generated during change detection</td><td>Release history</td></tr>
+            <tr><td><code>latest</code>, <code>current</code></td><td>Aliases promoted from the validated candidate</td><td>Convenient image pulls</td></tr>
+            <tr><td><code>current@sha256:…</code></td><td>Digest-pinned image reference written into published template</td><td>Repeatable template behavior</td></tr>
+          </tbody>
+        </table></div>
+        <div class="codebox"><div class="code-head"><span>Inspect the existing image build entry point</span><button class="copy" type="button">Copy</button></div><pre><code>./scripts/build-image.sh --distro ubuntu --candidateTag local-check</code></pre></div>
+        <p class="mini">This command pushes to the image path configured in <code>scripts/lib.sh</code>. Log in with package-write access first; for a personal fork, change the namespace before running it.</p>
+      </section>
+
+      <section id="template-workflow">
+        <div class="eyebrow">05 / Template workflow</div>
+        <h2>How an image becomes a template</h2>
+        <ol>
+          <li><strong>Overlay template files.</strong> <code>create-template.sh</code> copies <code>templates/_common/</code> and then <code>templates/&lt;distro&gt;/</code> to <code>.tmp/.publish-template-&lt;distro&gt;/</code>.</li>
+          <li><strong>Inject release values.</strong> It sets the generated Dev Container <code>name</code>, candidate image reference, and template <code>version</code>. This ensures the test uses the image built for that validation.</li>
+          <li><strong>Start and test.</strong> <code>test-template.sh</code> creates a temporary SSH key/agent if needed, copies the generated <code>.devcontainer/</code>, runs <code>up.sh</code>, then runs <code>test/&lt;distro&gt;/test.sh</code> inside the container.</li>
+          <li><strong>Publish after validation.</strong> The release script downloads the tested template artifacts, restores unchanged templates, verifies IDs and release versions, and checks candidate/current image digests match.</li>
+          <li><strong>Pin and publish.</strong> For changed distros, the config is rewritten to <code>ghcr.io/&lt;owner&gt;/mise-devcontainer-&lt;distro&gt;:current@sha256:&lt;digest&gt;</code>. Dev Container CLI publishes the collection to GHCR as OCI artifacts.</li>
+        </ol>
+        <h3>Template config details worth preserving</h3>
+        <ul class="checklist">
+          <li><code>workspaceFolder</code> and <code>workspaceMount</code> mount the local project at <code>/code/&lt;project&gt;</code>.</li>
+          <li><code>SSH_AUTH_SOCK</code> is mounted from the host. Private SSH keys remain on the host.</li>
+          <li><code>MISE_GITHUB_TOKEN</code> is optional at runtime and forwarded from the host environment.</li>
+          <li><code>postCreateCommand</code>, <code>postStartCommand</code>, and <code>postAttachCommand</code> invoke scripts shipped in the image.</li>
+          <li>Use <code>devcontainer templates apply</code> for this repo's published template. Its README explains why an editor's template-creation flow may not have the host SSH socket available.</li>
+        </ul>
+        <div class="codebox"><div class="code-head"><span>Apply a published template</span><button class="copy" type="button">Copy</button></div><pre><code>devcontainer templates apply \
+  -t ghcr.io/&lt;owner&gt;/mise-devcontainers/ubuntu \
+  -w .</code></pre></div>
+        <p class="mini">For the upstream collection, the owner is currently <code>mkvlrn</code>. Replace the owner and collection with your own values after forking.</p>
+      </section>
+
+      <section id="test-local">
+        <div class="eyebrow">06 / Local build and test</div>
+        <h2>Run the same stages before opening a PR</h2>
+        <p class="section-intro">Local validation uses the same scripts as Actions. It pushes a candidate image, so it requires Docker Buildx and write access to the configured GHCR packages.</p>
+        <h3>Prerequisites</h3>
+        <ul class="checklist">
+          <li>Docker with Buildx, <code>jq</code>, and an authenticated GHCR account with package write access.</li>
+          <li><code>devcontainer</code> CLI for template tests and publishing.</li>
+          <li><code>oras</code> for restoring previously published template artifacts during a partial release.</li>
+          <li>A loaded SSH key/agent for realistic template tests. The test script can create a temporary test key and agent when absent.</li>
+          <li>An optional <code>MISE_GITHUB_TOKEN</code> for mise operations that need GitHub-backed downloads or higher rate limits.</li>
+        </ul>
+        <h3>Build one candidate, generate its template, then test</h3>
+        <div class="codebox"><div class="code-head"><span>Commands — replace tag and distro as needed</span><button class="copy" type="button">Copy</button></div><pre><code>export GHCR_USERNAME="YOUR_GITHUB_USERNAME"
+export GITHUB_TOKEN="YOUR_GHCR_PACKAGE_WRITE_TOKEN"
+
+./scripts/login-ghcr.sh
+./scripts/build-image.sh --distro ubuntu --candidateTag local-check
+
+./scripts/create-template.sh \
+  --distro ubuntu \
+  --candidateTag local-check \
+  --imageVersion 2026.10.6-12.00.00
+
+npm install -g @devcontainers/cli
+./scripts/test-template.sh --distro ubuntu</code></pre></div>
+        <p><code>build-image.sh</code> pushes its result. <code>create-template.sh</code> writes ignored temporary output. <code>test-template.sh</code> starts the resulting devcontainer and removes its temporary test workspace on exit.</p>
+        <div class="callout warning"><strong>Local tags are not release versions.</strong><p>The timestamp passed to <code>create-template.sh</code> is only test metadata. The real version is generated by <code>detect-changes.sh</code> during PR validation and saved with the candidate tag and commit SHA.</p></div>
+        <h3>Change detection sanity check</h3>
+        <p>In CI, base and head SHAs come from the pull request event. Locally, absent those values the script compares <code>HEAD~1...HEAD</code>. You can override both:</p>
+        <div class="codebox"><div class="code-head"><span>Compare a chosen commit range</span><button class="copy" type="button">Copy</button></div><pre><code>BASE_SHA=&lt;base-sha&gt; HEAD_SHA=&lt;head-sha&gt; ./scripts/detect-changes.sh</code></pre></div>
+      </section>
+
+      <section id="release">
+        <div class="eyebrow">07 / GitHub Actions release</div>
+        <h2>A merge releases the tested bits</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Workflow / job</th><th>What it does</th><th>Key output</th></tr></thead>
+          <tbody>
+            <tr><td><code>validate.yml</code> — detect-changes</td><td>Runs publishing logic tests, selects affected distros, creates candidate tag and image version, stores metadata artifact.</td><td>Distro matrix + release metadata</td></tr>
+            <tr><td>build-image</td><td>Logs into GHCR and builds/pushes each affected image candidate.</td><td><code>:ci-&lt;run&gt;-&lt;attempt&gt;</code></td></tr>
+            <tr><td>create-template</td><td>Creates one candidate-configured template per affected distro and uploads it as an artifact.</td><td><code>template-&lt;distro&gt;</code></td></tr>
+            <tr><td>test-template</td><td>Downloads each template artifact and runs it against its candidate image.</td><td>Pass/fail validation</td></tr>
+            <tr><td><code>release.yml</code> — restore-validation</td><td>Runs only for merged PRs. Finds a successful validation for that exact head SHA and downloads its metadata and template artifacts.</td><td>Verified candidate + tested artifacts</td></tr>
+            <tr><td>promote-image</td><td>Promotes candidate to version, <code>latest</code>, and <code>current</code>.</td><td>Stable image tags</td></tr>
+            <tr><td>publish-template</td><td>Combines changed templates with existing unchanged templates, verifies digest identity, pins changed configs, publishes collection.</td><td>Versioned OCI templates</td></tr>
+          </tbody>
+        </table></div>
+        <div class="callout"><strong>Validation metadata binds release to tested commit.</strong><p>The artifact records distro list, candidate tag, image version, and PR head SHA. Release looks up successful validation for that SHA. If the PR changes after validation, the new head must pass validation before merge.</p></div>
+        <div class="callout warning"><strong>First release needs every template published.</strong><p>Publishing a partial distro update pulls the existing <code>:latest</code> template artifact for every unchanged distro. For a new collection, change <code>.rebuild-all</code> so validation and release include every distro. Otherwise publishing fails until all collection members exist.</p></div>
+        <p class="mini">Validation metadata and template artifacts have 30-day retention. Merge while the successful validation run and artifacts remain available.</p>
+      </section>
+
+      <section id="your-namespace">
+        <div class="eyebrow">08 / Publish under your account</div>
+        <h2>Fork once, then rebrand the registry paths</h2>
+        <p class="section-intro">The workflow logic is reusable, but this repo currently hard-codes upstream package and template namespaces. A fork alone will still try to publish upstream names.</p>
+        <h3>Update the namespace references</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>File</th><th>Update</th></tr></thead>
+          <tbody>
+            <tr><td><code>scripts/lib.sh</code></td><td>Change <code>image_name()</code> from <code>mkvlrn/mise-devcontainer-&lt;distro&gt;</code> to <code>&lt;your-owner&gt;/mise-devcontainer-&lt;distro&gt;</code>.</td></tr>
+            <tr><td><code>scripts/publish-template.sh</code></td><td>Set <code>NAMESPACE</code> to <code>&lt;your-owner&gt;/&lt;your-template-collection&gt;</code>.</td></tr>
+            <tr><td><code>templates/*/devcontainer-template.json</code></td><td>Update <code>publisher</code>, <code>documentationURL</code>, and <code>licenseURL</code> for your project.</td></tr>
+            <tr><td><code>distros/_common/Dockerfile</code></td><td>Update <code>org.opencontainers.image.source</code> to your repository URL.</td></tr>
+            <tr><td><code>README.md</code></td><td>Update image/template examples, badges, repository links, and any owner-specific instructions.</td></tr>
+          </tbody>
+        </table></div>
+        <p>The image and template namespaces are different by design: image packages use a distro-suffixed package name; template packages live under one collection namespace with distro tags. Keep both references consistent.</p>
+        <h3>Set up GitHub and GHCR</h3>
+        <ol>
+          <li>Enable GitHub Actions for the fork and allow workflows to create packages. The workflows request <code>packages: write</code> where they push images or templates.</li>
+          <li>Ensure the workflow's <code>GITHUB_TOKEN</code> can publish packages in your repo/organization. For private packages, make sure template consumers can pull both template artifacts and referenced images.</li>
+          <li>Add <code>MISE_GITHUB_TOKEN</code> as a repository Actions secret only if builds need it. The workflow passes it as a BuildKit secret, not as a public image value.</li>
+          <li>For a fork's initial release, update <code>.rebuild-all</code> and merge a validated PR that publishes all distros and seeds all template artifacts.</li>
+          <li>Check the Actions run and GHCR package pages. Then apply one of your templates to a throwaway project and confirm the image is pullable.</li>
+        </ol>
+        <div class="callout danger"><strong>Fork pull requests may not have package-write secrets.</strong><p>GitHub restricts secrets and write tokens for many pull requests from other repositories. Validate from branches in your own repo or adjust the workflow security model deliberately. Do not grant untrusted PR code a privileged token just to make candidate pushes work.</p></div>
+        <div class="callout warning"><strong>Also update Renovate configuration if you keep it.</strong><p><code>.github/renovate.json</code> extends config from <code>mkvlrn/ts-tools</code>. Replace it with your own config or remove the extension if it does not apply.</p></div>
+      </section>
+
+      <section id="add-distro">
+        <div class="eyebrow">09 / Add a distro</div>
+        <h2>Make the image and template a complete pair</h2>
+        <p class="section-intro">Distro discovery is dynamic, but release publication expects a complete template collection. Add every matching component before relying on automated releases.</p>
+        <ol>
+          <li>Create <code>distros/&lt;name&gt;/Dockerfile</code> with a pinned base image and any required distro-specific environment settings.</li>
+          <li>Add required ordered scripts, usually <code>scripts/01-base.sh</code> and <code>scripts/02-packages.sh</code>. Make scripts executable where the Dockerfile expects them; follow neighboring distro conventions.</li>
+          <li>Create <code>templates/&lt;name&gt;/devcontainer-template.json</code>. Set <code>id</code> exactly to <code>&lt;name&gt;</code> and fill in name, description, publisher, documentation, and license metadata.</li>
+          <li>Create <code>test/&lt;name&gt;/test.sh</code>. Source the shared test utilities and base tests, then add distro-specific checks where they matter.</li>
+          <li>Review the image name and template namespace behavior. <code>lib.sh</code> derives image references from distro names; the collection publish script includes all discovered distros.</li>
+          <li>Change <code>.rebuild-all</code> for the initial publication. This builds and tests all images and creates all template artifacts, allowing the release job to seed the full collection.</li>
+        </ol>
+        <div class="codebox"><div class="code-head"><span>Minimal distro test shape — see existing tests for exact helpers</span><button class="copy" type="button">Copy</button></div><pre><code>#!/bin/sh
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" &amp;&amp; pwd)"
+. "$SCRIPT_DIR/../_common/util.sh"
+. "$SCRIPT_DIR/../_common/base.sh"
+
+# Add distro-specific assertions here.
+report_results</code></pre></div>
+        <div class="callout"><strong>Check the directory name everywhere.</strong><p>The distro directory determines matrix values, image package suffix, test path, template artifact name, and template ID. A naming mismatch can build successfully but fail template publication.</p></div>
+      </section>
+
+      <section id="troubleshooting">
+        <div class="eyebrow">10 / Troubleshooting</div>
+        <h2>Common failure points</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr></thead>
+          <tbody>
+            <tr><td>No distro jobs run</td><td>Changed path is outside watched directories.</td><td>Review <code>detect-changes.sh</code>; touch <code>.rebuild-all</code> for an intentional full rebuild.</td></tr>
+            <tr><td>GHCR push denied</td><td>Wrong hard-coded owner, insufficient token scope, or fork PR token restrictions.</td><td>Check <code>scripts/lib.sh</code>, package permissions, workflow run context, and package visibility.</td></tr>
+            <tr><td>Candidate image not found during template test</td><td>Build did not push candidate, candidate tag differs, or package is private to the runner.</td><td>Compare build output and the candidate image value generated in <code>create-template.sh</code>.</td></tr>
+            <tr><td>Template tests lack SSH access</td><td>Host agent/key not available, or template apply path does not expose host <code>SSH_AUTH_SOCK</code>.</td><td>Check <code>ssh-add -L</code>, template mounts, and use the Dev Container CLI flow in the README.</td></tr>
+            <tr><td>Release says an unchanged template cannot be restored</td><td>Collection has never published that distro, or its OCI package is not readable.</td><td>Seed the full collection with <code>.rebuild-all</code>; check <code>NAMESPACE</code> and GHCR access.</td></tr>
+            <tr><td>Release rejects candidate/current digest</td><td>Candidate wasn't promoted or promotion did not preserve the tested image digest.</td><td>Inspect promote job and compare both image digests. Do not bypass this guard.</td></tr>
+            <tr><td>Successful PR validation cannot be restored</td><td>Validation was for a different head SHA, or artifacts expired.</td><td>Re-run validation on the exact merged head and merge within artifact retention.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <div class="divider"></div>
+      <footer>
+        <a class="toplink" href="#top">Back to top ↑</a>
+        <strong>Source files:</strong> <code>README.md</code>, <code>scripts/</code>, <code>distros/</code>, <code>templates/</code>, and <code>.github/workflows/</code>.<br>
+        This guide describes the repository's current implementation. Review those files after changing its publishing model.
+      </footer>
+    </main>
+  </div>
+  <script>
+    document.querySelectorAll(".copy").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const code = button.closest(".codebox").querySelector("code").innerText;
+        try {
+          await navigator.clipboard.writeText(code);
+          button.textContent = "Copied";
+          setTimeout(() => { button.textContent = "Copy"; }, 1400);
+        } catch {
+          button.textContent = "Copy unavailable";
+          setTimeout(() => { button.textContent = "Copy"; }, 1800);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
